@@ -1080,7 +1080,7 @@ P.cprof=()=>{const c=meCust();
   const logs=S.point_history.filter(x=>x.username===c.id||(c.memberId&&x.memberId===c.memberId)).slice(0,25);
   return head('Profil Saya','Kelola data akun, keamanan, notifikasi, dan poin loyalty')+`
   <div class="g g3">
-    <div class="qa pri"><i class="qic">${ic('star',20)}</i><div class="mu">Saldo Poin Loyalty</div><div class="b" style="font-size:26px">${c.poin||0} Poin</div><div class="mu" style="margin-top:4px">Setiap belanja ${R(S.settings.poinNominal||10000)} dapat ${S.settings.poinDapat||1} poin</div></div>
+    <div class="qa pri"><i class="qic">${ic('star',20)}</i><div class="mu">Saldo Poin Loyalty</div><div class="b" style="font-size:26px">${c.poin||0} Poin</div><div class="mu" style="margin-top:4px"</div>
     <div class="card"><div class="b" style="margin-bottom:6px">Informasi Akun & WhatsApp</div><label>Nama lengkap</label><input id="pn" value="${esc(c.nama)}"><label>Nomor WhatsApp / HP (untuk notifikasi pesanan selesai)</label><input id="pwa" type="tel" value="${esc(c.noWa||'')}" placeholder="08123456789"><button class="btn a w" style="margin-top:12px" onclick="A.pProf()">Simpan Profil</button></div>
     <div class="card"><div class="b" style="margin-bottom:6px">Ganti Username</div><div class="mu">Username saat ini: <b>@${esc(c.id)}</b></div><label>Username baru (3-20 huruf kecil/angka)</label><input id="pu1" placeholder="usernamebaru"><label>Konfirmasi password saat ini</label><input id="pu2" type="password"><button class="btn o w" style="margin-top:12px" onclick="A.pUser()">Ubah Username</button></div>
   </div>
