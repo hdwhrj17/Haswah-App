@@ -726,23 +726,70 @@ A.os=async()=>{const g=ig($('f1').value),n=+$('f2').value;if(!g||$('f2').value==
 
 // ===== TEMPLATE & IMPORT FILE (PRODUK & BAHAN) =====
 let impData=[];
-A.tpl=t=>{
+const loadXlsx=async()=>{
+  if(window.XLSX)return window.XLSX;
+  try{await lib('https://cdn.jsdelivr.net/npm/xlsx-js-style@1.2.0/dist/xlsx.bundle.js')}
+  catch(e){await lib('https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js')}
+  return window.XLSX;
+};
+
+A.tpl=async t=>{
   const isP=t==='prod',b1=S.ingredients[0]?.nama||'Biji Kopi',b2=S.ingredients[1]?.nama||'Susu Cair';
   const rs=isP?[
     ['Nama Produk','Kategori','Harga Jual (Rp)','Harga Tukar Poin','Status (Aktif/Nonaktif)','Resep (NamaBahan:Qty | NamaBahan:Qty)'],
-    ['Aren Latte','Signature','25000','25','Aktif',`${b1}:18 | ${b2}:150`],
-    ['Coffee Latte','Coffee','23000','20','Aktif',`${b1}:18 | ${b2}:150`],
-    ['Americano','Coffee','18000','15','Aktif',`${b1}:18`]
+    ['Aren Latte','Signature',25000,25,'Aktif',`${b1}:18 | ${b2}:150`],
+    ['Coffee Latte','Coffee',23000,20,'Aktif',`${b1}:18 | ${b2}:150`],
+    ['Americano','Coffee',18000,15,'Aktif',`${b1}:18`]
   ]:[
     ['Nama Bahan','Satuan (gr/ml/pcs)','Stok Awal','Stok Minimum','Harga per Satuan (Rp)'],
-    ['Biji Kopi','gr','5000','1000','250'],
-    ['Susu Cair','ml','10000','2000','20'],
-    ['Gula Aren Cair','ml','3000','500','35'],
-    ['Cup 16oz','pcs','500','100','800']
+    ['Biji Kopi','gr',5000,1000,250],
+    ['Susu Cair','ml',10000,2000,20],
+    ['Gula Aren Cair','ml',3000,500,35],
+    ['Cup 16oz','pcs',500,100,800]
   ];
-  const cell=c=>{c=String(c??'');return/[";\r\n]/.test(c)?'"'+c.replace(/"/g,'""')+'"':c};
-  dl(new Blob(['\ufeff'+rs.map(r=>r.map(cell).join(';')).join('\r\n')],{type:'text/csv;charset=utf-8'}),isP?'template-produk-haswah.csv':'template-bahan-haswah.csv');
-  toast('Template '+(isP?'Produk':'Bahan')+' berhasil diunduh');
+  try{
+    const X=await loadXlsx(),wb=X.utils.book_new(),ws=X.utils.aoa_to_sheet(rs);
+    ws['!cols']=isP?[{wch:24},{wch:18},{wch:18},{wch:18},{wch:24},{wch:44}]:[{wch:26},{wch:20},{wch:15},{wch:16},{wch:22}];
+    ws['!rows']=[{hpt:26},...rs.slice(1).map(()=>({hpt:20}))];
+    const bd={top:{style:'thin',color:{rgb:'CBD5E1'}},bottom:{style:'thin',color:{rgb:'CBD5E1'}},left:{style:'thin',color:{rgb:'CBD5E1'}},right:{style:'thin',color:{rgb:'CBD5E1'}}};
+    const hStyle={fill:{fgColor:{rgb:'1D63DC'}},font:{name:'Calibri',sz:11,bold:true,color:{rgb:'FFFFFF'}},alignment:{vertical:'center',horizontal:'center'},border:bd};
+    const cStyle=(r,c)=>({fill:{fgColor:{rgb:r%2===0?'F8FAFC':'FFFFFF'}},font:{name:'Calibri',sz:11,color:{rgb:'0F172A'}},alignment:{vertical:'center',horizontal:(isP?(c===2||c===3):(c>=2))?'right':(isP&&c===4)||(!isP&&c===1)?'center':'left'},border:bd,...((isP?(c===2||c===3):(c>=2))?{numFmt:'#,##0'}:{})});
+    for(let r=0;r<rs.length;r++){
+      for(let c=0;c<rs[0].length;c++){
+        const ref=X.utils.encode_cell({r,c});
+        if(ws[ref])ws[ref].s=r===0?hStyle:cStyle(r,c);
+      }
+    }
+    X.utils.book_append_sheet(wb,ws,isP?'Template Produk':'Template Bahan');
+    const info=isP?[
+      ['PANDUAN PENGISIAN TEMPLATE PRODUK HASWAH','',''],
+      ['1. Isi daftar produk Anda mulai dari Baris ke-2 pada sheet "Template Produk" (baris contoh bisa dihapus/diganti).','',''],
+      ['2. Harga Jual diisi angka saja (contoh: 25000).','',''],
+      ['3. Harga Tukar Poin diisi 0 jika produk tidak bisa ditukar dengan poin.','',''],
+      ['4. Status diisi Aktif atau Nonaktif.','',''],
+      ['5. Resep (opsional): ketik NamaBahan:Qty dipisahkan tanda | (contoh: Biji Kopi:18 | Susu Cair:150).','',''],
+      ['','',''],
+      ['DAFTAR BAHAN BAKU DI TOKO ANDA SAAT INI','Satuan','Harga/Satuan (Rp)'],
+      ...(S.ingredients.length?S.ingredients.map(g=>[g.nama,g.satuan,g.hargaPerSatuan]):[['(Belum ada bahan baku terdaftar)','-','-']])
+    ]:[
+      ['PANDUAN PENGISIAN TEMPLATE BAHAN BAKU HASWAH'],
+      ['1. Isi daftar bahan baku Anda mulai dari Baris ke-2 pada sheet "Template Bahan" (baris contoh bisa dihapus/diganti).'],
+      ['2. Kolom Satuan diisi salah satu dari: gr, ml, atau pcs.'],
+      ['3. Stok Awal, Stok Minimum, dan Harga per Satuan diisi angka saja (contoh: 5000).'],
+      ['4. Contoh Harga per Satuan: jika 1 Kg (1000 gr) Biji Kopi harganya Rp 250.000, maka Harga per Satuan (gr) adalah 250.']
+    ];
+    const ws2=X.utils.aoa_to_sheet(info);
+    ws2['!cols']=[{wch:62},{wch:16},{wch:20}];
+    if(ws2['A1'])ws2['A1'].s={font:{name:'Calibri',sz:12,bold:true,color:{rgb:'1D63DC'}}};
+    if(isP&&ws2['A8']){['A8','B8','C8'].forEach(k=>{if(ws2[k])ws2[k].s=hStyle})}
+    X.utils.book_append_sheet(wb,ws2,'Panduan & Referensi');
+    X.writeFile(wb,isP?'template-produk-haswah.xlsx':'template-bahan-haswah.xlsx');
+    toast('Template Excel '+(isP?'Produk':'Bahan')+' (.xlsx) berhasil diunduh');
+  }catch(e){
+    const cell=c=>{c=String(c??'');return/[",\r\n]/.test(c)?'"'+c.replace(/"/g,'""')+'"':c};
+    dl(new Blob(['\ufeffsep=,\r\n'+rs.map(r=>r.map(cell).join(',')).join('\r\n')],{type:'text/csv;charset=utf-8'}),isP?'template-produk-haswah.csv':'template-bahan-haswah.csv');
+    toast('Template '+(isP?'Produk':'Bahan')+' berhasil diunduh');
+  }
 };
 
 const parseNum=v=>{
@@ -756,7 +803,7 @@ const parseNum=v=>{
 };
 
 const parseCsvText=txt=>{
-  txt=txt.replace(/^\ufeff/,'').replace(/\r\n/g,'\n').replace(/\r/g,'\n');
+  txt=txt.replace(/^\ufeff/,'').replace(/\r\n/g,'\n').replace(/\r/g,'\n').replace(/^sep=.\n/i,'');
   const fl=txt.split('\n').find(l=>l.trim())||'';
   const cnt=d=>(fl.match(new RegExp('\\'+d,'g'))||[]).length;
   const sep=cnt(';')>=cnt(',')&&cnt(';')>=cnt('\t')?';':cnt('\t')>cnt(',')?'\t':',';
@@ -773,15 +820,15 @@ const parseCsvText=txt=>{
 A.impModal=t=>{
   impData=[];const isP=t==='prod';
   modal(`<div class="b" style="font-size:17px">Import File ${isP?'Produk & Resep':'Bahan Baku'}</div>
-  <div class="mu" style="margin:4px 0 12px">Unggah file <b>CSV (.csv)</b> atau <b>Excel (.xlsx / .xls)</b> sesuai format template.</div>
+  <div class="mu" style="margin:4px 0 12px">Unggah file <b>Excel (.xlsx / .xls)</b> atau <b>CSV (.csv)</b> sesuai format template.</div>
   <div class="card" style="background:var(--sf);padding:12px">
     <div class="row sp" style="flex-wrap:wrap;gap:8px">
-      <div><div class="b" style="font-size:13px">1. Belum punya template?</div><div class="mu">Unduh contoh template lalu isi di Excel / Spreadsheet</div></div>
-      <button type="button" class="btn s o" onclick="A.tpl('${t}')">${ic('download',14)} Unduh Template</button>
+      <div><div class="b" style="font-size:13px">1. Belum punya template?</div><div class="mu">Unduh template Excel (.xlsx) yang sudah rapi per kolom</div></div>
+      <button type="button" class="btn s o" onclick="A.tpl('${t}')">${ic('download',14)} Unduh Template (.xlsx)</button>
     </div>
     <div style="margin-top:12px;padding-top:12px;border-top:1px solid var(--bd)">
-      <div class="b" style="font-size:13px;margin-bottom:6px">2. Pilih File CSV / Excel</div>
-      <input type="file" accept=".csv,.txt,.tsv,.xlsx,.xls,text/csv,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" onchange="A.impFile(this,'${t}')">
+      <div class="b" style="font-size:13px;margin-bottom:6px">2. Pilih File Excel / CSV</div>
+      <input type="file" accept=".xlsx,.xls,.csv,.txt,.tsv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel,text/csv" onchange="A.impFile(this,'${t}')">
     </div>
     <label style="display:flex;gap:8px;align-items:center;color:var(--tx);font-size:13px;margin:10px 0 0">
       <input type="checkbox" id="imp_upd" checked style="width:17px;height:17px;flex:none">
@@ -801,9 +848,8 @@ A.impFile=async(el,t)=>{
   try{
     let raw=[];
     if(/\.xlsx?$/i.test(f.name)){
-      if(!window.XLSX)await lib('https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js');
-      const buf=await f.arrayBuffer(),wb=window.XLSX.read(buf,{type:'array'}),sh=wb.Sheets[wb.SheetNames[0]];
-      raw=window.XLSX.utils.sheet_to_json(sh,{header:1,defval:''}).map(r=>r.map(c=>String(c??'').trim())).filter(r=>r.some(x=>x!==''));
+      const X=await loadXlsx(),buf=await f.arrayBuffer(),wb=X.read(buf,{type:'array'}),sh=wb.Sheets[wb.SheetNames[0]];
+      raw=X.utils.sheet_to_json(sh,{header:1,defval:''}).map(r=>r.map(c=>String(c??'').trim())).filter(r=>r.some(x=>x!==''));
     }else{
       raw=parseCsvText(await f.text());
     }
