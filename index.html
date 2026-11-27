@@ -267,7 +267,8 @@ const IC={
   sun:'<circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/>',
   moon:'<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>',
   bt:'<polyline points="6.5 6.5 17.5 17.5 12 23 12 1 17.5 6.5 6.5 17.5"/>',
-  phone:'<rect x="5" y="2" width="14" height="20" rx="2" ry="2"/><path d="M12 18h.01"/>'
+  phone:'<rect x="5" y="2" width="14" height="20" rx="2" ry="2"/><path d="M12 18h.01"/>',
+  upload:'<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M17 8l-5-5-5 5M12 3v12"/>'
 };
 const ic=(n,z)=>`<svg class="ic" width="${z||19}" height="${z||19}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${IC[n]||''}</svg>`;
 
@@ -542,11 +543,11 @@ kasir(){const cs=['Semua',...new Set(S.products.map(p=>p.kategori))];
   return head('Kasir POS','Pilih menu untuk membuat pesanan')+`<div class="g kg"><div><div class="srch">${ic('search',18)}<input placeholder="Cari menu..." value="${esc(q)}" oninput="A.q(this.value)"></div><div class="chips">${cs.map(c=>`<button class="chip ${c===cat?'on':''}" data-c="${esc(c)}" onclick="A.cat(this.dataset.c)">${esc(c)}</button>`).join('')}</div><div id="grid" class="g g2">${gridHtml()}</div></div><div><div id="cart" class="card kcart">${cartHtml()}</div></div></div><div id="kbar">${kbarHtml()}</div>`},
 
 prod(){const tm=S.settings.targetMarginPersen||60;
-  return head('Produk & Resep','Atur harga jual, resep HPP, dan poin penukaran')+`<button class="btn a" onclick="A.pf()">+ Tambah Produk</button><div class="g g3" style="margin-top:14px">${S.products.length?S.products.map(p=>{const h=hpp(p),m=p.hargaJual?(p.hargaJual-h)/p.hargaJual*100:0;
+  return head('Produk & Resep','Atur harga jual, resep HPP, dan poin penukaran')+`<div class="row" style="flex-wrap:wrap"><button class="btn a" onclick="A.pf()">+ Tambah Produk</button><button class="btn o" onclick="A.impModal('prod')">${ic('upload',15)} Import File</button><button class="btn" onclick="A.tpl('prod')">${ic('download',15)} Unduh Template</button></div><div class="g g3" style="margin-top:14px">${S.products.length?S.products.map(p=>{const h=hpp(p),m=p.hargaJual?(p.hargaJual-h)/p.hargaJual*100:0;
   return`<div class="card">${p.gambar?`<div class="th hi" onclick="A.imgPrev('${p.id}')"><img src="${p.gambar}" alt="${esc(p.nama)}"></div>`:''}<div class="row sp"><b>${esc(p.nama)}</b><span class="bd ${m>=tm?'ok':m>=tm/2?'wn':'er'}">${m.toFixed(0)}%</span></div><div class="mu">${esc(p.kategori)}${p.aktif===false?' &#183; nonaktif':''}${p.hargaPoin>0?` &#183; <b style="color:var(--ac)">${p.hargaPoin} Poin</b>`:''}</div><div class="row sp ln"><span class="mu">Harga jual</span><b>${R(p.hargaJual)}</b></div><div class="row sp"><span class="mu">HPP</span><b>${R(h)}</b></div><div class="row sp"><span class="mu">Saran harga (${tm}%)</span><b>${R(h/(1-tm/100))}</b></div><div class="mu" style="margin:8px 0">${(p.resep||[]).map(r=>`${r.qty}${ig(r.bahanId)?.satuan||''} ${esc(ig(r.bahanId)?.nama||'?')}`).join(', ')}</div><div class="row"><button class="btn s o" onclick="A.pf('${p.id}')">Edit</button><button class="btn s d" onclick="A.del('products','${p.id}')">Hapus</button></div></div>`}).join(''):em('Belum ada produk. Tambahkan produk pertama Anda.')}</div>`},
 
 stock(){const ad=me.role==='admin';
-  return head('Bahan & Stok','Pantau ketersediaan bahan baku secara real-time')+(ad?`<button class="btn a" onclick="A.bf()">+ Tambah Bahan</button>`:'')+`<div class="g g3" style="margin-top:14px">${S.ingredients.length?S.ingredients.map(i=>{const s=st(i),pc=Math.max(0,Math.min(100,i.stok/Math.max(i.stokMinimum*3,1)*100));
+  return head('Bahan & Stok','Pantau ketersediaan bahan baku secara real-time')+(ad?`<div class="row" style="flex-wrap:wrap"><button class="btn a" onclick="A.bf()">+ Tambah Bahan</button><button class="btn o" onclick="A.impModal('ing')">${ic('upload',15)} Import File</button><button class="btn" onclick="A.tpl('ing')">${ic('download',15)} Unduh Template</button></div>`:'')+`<div class="g g3" style="margin-top:14px">${S.ingredients.length?S.ingredients.map(i=>{const s=st(i),pc=Math.max(0,Math.min(100,i.stok/Math.max(i.stokMinimum*3,1)*100));
   return`<div class="card"><div class="row sp"><b>${esc(i.nama)}</b><span class="bd ${s[1]}">${s[0]}</span></div><div class="b" style="font-size:20px;margin:4px 0">${+i.stok.toFixed(1)} <span class="mu">${i.satuan}</span></div><div class="pg"><i style="width:${pc}%;background:var(--${s[1]})"></i></div><div class="mu" style="margin-top:6px">Minimum ${i.stokMinimum} ${i.satuan}${ad?' &#183; '+R(i.hargaPerSatuan)+'/'+i.satuan:''}</div>${ad?`<div class="row" style="margin-top:10px"><button class="btn s o" onclick="A.bf('${i.id}')">Edit</button><button class="btn s d" onclick="A.del('ingredients','${i.id}')">Hapus</button></div>`:''}</div>`}).join(''):em('Belum ada bahan baku')}</div>`},
 
 masuk(){const f=mf,l=S.stock_movements.filter(m=>(f.t==='semua'||m.tipe===f.t)&&(!f.v||day(m.waktu).startsWith(f.v))),inn=l.filter(m=>m.tipe==='masuk'),bm={};
@@ -698,9 +699,11 @@ A.batal=id=>{const t=S.transactions.find(x=>x.id===id);if(!t||t.status!=='selesa
   try{const b=F.writeBatch(db);b.update(F.doc(db,'transactions',id),{status:'batal'});t.pakai.forEach(u=>{b.update(F.doc(db,'ingredients',u.bahanId),{stok:F.increment(u.qty)});b.set(F.doc(F.collection(db,'stock_movements')),{bahanId:u.bahanId,tipe:'batal',qty:u.qty,refId:t.noOrder,oleh:me.nama,waktu:Date.now()})});await b.commit();
     if(t.memberUser&&t.poinDidapat>0)await awardPoints(t.memberUser,-t.poinDidapat,t.noOrder,'Pembatalan '+t.noOrder)}catch(e){toast('Gagal: '+fe(e))}},'Batalkan')};
 
-// ===== PRODUK & RESEP =====
+// ===== PRODUK, RESEP, BAHAN & IMPORT MASSAL (CSV / EXCEL) =====
+const impBox=t=>`<div class="card" style="margin:10px 0 6px;padding:12px;background:var(--sf)"><div class="row sp" style="flex-wrap:wrap;gap:8px"><div><div class="b" style="font-size:13px">Import Massal dari File (CSV / Excel)</div><div class="mu">Tambah banyak ${t==='prod'?'produk':'bahan'} sekaligus menggunakan template</div></div><div class="row"><button type="button" class="btn s" onclick="A.tpl('${t}')">${ic('download',14)} Template</button><button type="button" class="btn s a" onclick="A.impModal('${t}')">${ic('upload',14)} Import File</button></div></div></div>`;
+
 A.pf=id=>{const p=id?pr(id):{nama:'',kategori:'',hargaJual:'',hargaPoin:0,aktif:true,resep:[{bahanId:'',qty:''}]};rows=(p.resep||[]).map(r=>({...r}));if(!rows.length)rows=[{bahanId:'',qty:''}];pend.prod=p.gambar||'';
-  modal(`<div class="b" style="font-size:16px">${id?'Edit':'Tambah'} Produk</div><label>Nama produk</label><input id="f1" value="${esc(p.nama)}"><label>Kategori</label><input id="f2" value="${esc(p.kategori)}" list="kl"><datalist id="kl">${[...new Set(S.products.map(x=>x.kategori))].map(k=>`<option>${esc(k)}</option>`).join('')}</datalist><div class="row"><div style="flex:1"><label>Harga jual (Rp)</label><input id="f3" type="number" value="${p.hargaJual}" oninput="A.rc()"></div><div style="flex:1"><label>Harga tukar poin (0 = tidak bisa)</label><input id="f5" type="number" min="0" value="${p.hargaPoin||0}"></div></div><label>Status</label><select id="f4"><option value="1">Aktif</option><option value="0" ${p.aktif===false?'selected':''}>Nonaktif</option></select>${imgBox('prod',pend.prod,'Gambar menu (opsional)')}<label>Resep per 1 porsi</label><div id="rr"></div><button class="btn s o" onclick="A.ra()">+ Bahan</button><div id="rs" class="card" style="margin-top:12px;background:var(--sf)"></div>${btns(`A.ps('${id||''}')`)}`);A.rr()};
+  modal(`<div class="b" style="font-size:16px">${id?'Edit':'Tambah'} Produk</div>${id?'':impBox('prod')}<label>Nama produk</label><input id="f1" value="${esc(p.nama)}"><label>Kategori</label><input id="f2" value="${esc(p.kategori)}" list="kl"><datalist id="kl">${[...new Set(S.products.map(x=>x.kategori))].map(k=>`<option>${esc(k)}</option>`).join('')}</datalist><div class="row"><div style="flex:1"><label>Harga jual (Rp)</label><input id="f3" type="number" value="${p.hargaJual}" oninput="A.rc()"></div><div style="flex:1"><label>Harga tukar poin (0 = tidak bisa)</label><input id="f5" type="number" min="0" value="${p.hargaPoin||0}"></div></div><label>Status</label><select id="f4"><option value="1">Aktif</option><option value="0" ${p.aktif===false?'selected':''}>Nonaktif</option></select>${imgBox('prod',pend.prod,'Gambar menu (opsional)')}<label>Resep per 1 porsi</label><div id="rr"></div><button class="btn s o" onclick="A.ra()">+ Bahan</button><div id="rs" class="card" style="margin-top:12px;background:var(--sf)"></div>${btns(`A.ps('${id||''}')`)}`);A.rr()};
 A.rr=()=>{$('rr').innerHTML=rows.map((r,i)=>`<div class="row" style="margin-bottom:6px"><select onchange="A.rb(${i},this.value)"><option value="">Pilih bahan</option>${S.ingredients.map(g=>`<option value="${g.id}" ${g.id===r.bahanId?'selected':''}>${esc(g.nama)} (${g.satuan})</option>`).join('')}</select><input type="number" step="any" min="0" style="width:90px" value="${r.qty}" oninput="A.rq(${i},this.value)"><button class="btn s d" onclick="A.rm(${i})">&#215;</button></div>`).join('');A.rc()};
 A.rc=()=>{const h=rows.reduce((s,r)=>s+(+r.qty||0)*(ig(r.bahanId)?.hargaPerSatuan||0),0),hj=+$('f3').value||0,tm=S.settings.targetMarginPersen||60;
   $('rs').innerHTML=`<div class="row sp"><span class="mu">HPP otomatis</span><b>${R(h)}</b></div><div class="row sp"><span class="mu">Margin</span><b>${hj?((hj-h)/hj*100).toFixed(1):0}%</b></div><div class="row sp"><span class="mu">Saran harga jual (${tm}%)</span><b>${R(h/(1-tm/100))}</b></div>`};
@@ -710,7 +713,7 @@ A.ps=async id=>{const o={nama:$('f1').value.trim(),kategori:$('f2').value.trim()
 
 // ===== BAHAN, STOK MASUK, OPNAME =====
 A.bf=id=>{const i=id?ig(id):{nama:'',satuan:'gr',stokMinimum:0,hargaPerSatuan:''};
-  modal(`<div class="b" style="font-size:16px">${id?'Edit':'Tambah'} Bahan</div><label>Nama bahan</label><input id="f1" value="${esc(i.nama)}"><label>Satuan</label><select id="f2">${['gr','ml','pcs'].map(s=>`<option ${s===i.satuan?'selected':''}>${s}</option>`).join('')}</select>${id?'':'<label>Stok awal</label><input id="f3" type="number" value="0">'}<label>Stok minimum</label><input id="f4" type="number" value="${i.stokMinimum}"><label>Harga per satuan (Rp)</label><input id="f5" type="number" step="any" value="${i.hargaPerSatuan}">${btns(`A.bs('${id||''}')`)}`)};
+  modal(`<div class="b" style="font-size:16px">${id?'Edit':'Tambah'} Bahan</div>${id?'':impBox('ing')}<label>Nama bahan</label><input id="f1" value="${esc(i.nama)}"><label>Satuan</label><select id="f2">${['gr','ml','pcs'].map(s=>`<option ${s===i.satuan?'selected':''}>${s}</option>`).join('')}</select>${id?'':'<label>Stok awal</label><input id="f3" type="number" value="0">'}<label>Stok minimum</label><input id="f4" type="number" value="${i.stokMinimum}"><label>Harga per satuan (Rp)</label><input id="f5" type="number" step="any" value="${i.hargaPerSatuan}">${btns(`A.bs('${id||''}')`)}`)};
 A.bs=async id=>{const o={nama:$('f1').value.trim(),satuan:$('f2').value,stokMinimum:+$('f4').value||0,hargaPerSatuan:+$('f5').value||0};if(!o.nama)return toast('Nama bahan wajib diisi');if(!id)o.stok=+$('f3').value||0;if(await run(()=>save('ingredients',o,id||undefined)))A.x()};
 const opts=()=>S.ingredients.map(g=>`<option value="${g.id}">${esc(g.nama)} (${g.satuan}) &#183; stok ${+g.stok.toFixed(1)}</option>`).join('');
 A.sf=()=>modal(`<div class="b" style="font-size:16px">Stok Masuk (Pembelian)</div><label>Bahan</label><select id="f1">${opts()}</select><label>Jumlah masuk</label><input id="f2" type="number" step="any" min="0"><label>Total harga beli (Rp)</label><input id="f3" type="number" min="0">${btns('A.ss()')}`);
@@ -720,6 +723,148 @@ A.ss=async()=>{const g=ig($('f1').value),n=+$('f2').value,tp=+$('f3').value;if(!
 A.of=()=>modal(`<div class="b" style="font-size:16px">Opname / Penyesuaian Stok</div><label>Bahan</label><select id="f1">${opts()}</select><label>Stok fisik saat ini</label><input id="f2" type="number" step="any" min="0">${btns('A.os()')}`);
 A.os=async()=>{const g=ig($('f1').value),n=+$('f2').value;if(!g||$('f2').value===''||n<0)return toast('Isi stok fisik');
   if(await run(async()=>{await save('ingredients',{stok:n},g.id);await addMv({bahanId:g.id,tipe:'penyesuaian',qty:n-g.stok,oleh:me.nama,waktu:Date.now()})}))A.x()};
+
+// ===== TEMPLATE & IMPORT FILE (PRODUK & BAHAN) =====
+let impData=[];
+A.tpl=t=>{
+  const isP=t==='prod',b1=S.ingredients[0]?.nama||'Biji Kopi',b2=S.ingredients[1]?.nama||'Susu Cair';
+  const rs=isP?[
+    ['Nama Produk','Kategori','Harga Jual (Rp)','Harga Tukar Poin','Status (Aktif/Nonaktif)','Resep (NamaBahan:Qty | NamaBahan:Qty)'],
+    ['Aren Latte','Signature','25000','25','Aktif',`${b1}:18 | ${b2}:150`],
+    ['Coffee Latte','Coffee','23000','20','Aktif',`${b1}:18 | ${b2}:150`],
+    ['Americano','Coffee','18000','15','Aktif',`${b1}:18`]
+  ]:[
+    ['Nama Bahan','Satuan (gr/ml/pcs)','Stok Awal','Stok Minimum','Harga per Satuan (Rp)'],
+    ['Biji Kopi','gr','5000','1000','250'],
+    ['Susu Cair','ml','10000','2000','20'],
+    ['Gula Aren Cair','ml','3000','500','35'],
+    ['Cup 16oz','pcs','500','100','800']
+  ];
+  const cell=c=>{c=String(c??'');return/[";\r\n]/.test(c)?'"'+c.replace(/"/g,'""')+'"':c};
+  dl(new Blob(['\ufeff'+rs.map(r=>r.map(cell).join(';')).join('\r\n')],{type:'text/csv;charset=utf-8'}),isP?'template-produk-haswah.csv':'template-bahan-haswah.csv');
+  toast('Template '+(isP?'Produk':'Bahan')+' berhasil diunduh');
+};
+
+const parseNum=v=>{
+  if(typeof v==='number')return isFinite(v)?v:0;
+  let s=String(v??'').replace(/[Rp\s]/gi,'').trim();
+  if(!s)return 0;
+  if(/^\d{1,3}(\.\d{3})+$/.test(s))s=s.replace(/\./g,'');
+  else if(/^\d{1,3}(,\d{3})+$/.test(s))s=s.replace(/,/g,'');
+  else s=s.replace(/,/g,'.');
+  return +s||0;
+};
+
+const parseCsvText=txt=>{
+  txt=txt.replace(/^\ufeff/,'').replace(/\r\n/g,'\n').replace(/\r/g,'\n');
+  const fl=txt.split('\n').find(l=>l.trim())||'';
+  const cnt=d=>(fl.match(new RegExp('\\'+d,'g'))||[]).length;
+  const sep=cnt(';')>=cnt(',')&&cnt(';')>=cnt('\t')?';':cnt('\t')>cnt(',')?'\t':',';
+  const out=[];let row=[],cur='',q=false;
+  for(let i=0;i<txt.length;i++){
+    const ch=txt[i];
+    if(q){if(ch==='"'&&txt[i+1]==='"'){cur+='"';i++}else if(ch==='"')q=false;else cur+=ch}
+    else{if(ch==='"')q=true;else if(ch===sep){row.push(cur.trim());cur=''}else if(ch==='\n'){row.push(cur.trim());if(row.some(x=>x!==''))out.push(row);row=[];cur=''}else cur+=ch}
+  }
+  row.push(cur.trim());if(row.some(x=>x!==''))out.push(row);
+  return out;
+};
+
+A.impModal=t=>{
+  impData=[];const isP=t==='prod';
+  modal(`<div class="b" style="font-size:17px">Import File ${isP?'Produk & Resep':'Bahan Baku'}</div>
+  <div class="mu" style="margin:4px 0 12px">Unggah file <b>CSV (.csv)</b> atau <b>Excel (.xlsx / .xls)</b> sesuai format template.</div>
+  <div class="card" style="background:var(--sf);padding:12px">
+    <div class="row sp" style="flex-wrap:wrap;gap:8px">
+      <div><div class="b" style="font-size:13px">1. Belum punya template?</div><div class="mu">Unduh contoh template lalu isi di Excel / Spreadsheet</div></div>
+      <button type="button" class="btn s o" onclick="A.tpl('${t}')">${ic('download',14)} Unduh Template</button>
+    </div>
+    <div style="margin-top:12px;padding-top:12px;border-top:1px solid var(--bd)">
+      <div class="b" style="font-size:13px;margin-bottom:6px">2. Pilih File CSV / Excel</div>
+      <input type="file" accept=".csv,.txt,.tsv,.xlsx,.xls,text/csv,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" onchange="A.impFile(this,'${t}')">
+    </div>
+    <label style="display:flex;gap:8px;align-items:center;color:var(--tx);font-size:13px;margin:10px 0 0">
+      <input type="checkbox" id="imp_upd" checked style="width:17px;height:17px;flex:none">
+      <span>Perbarui data otomatis jika nama ${isP?'produk':'bahan'} sudah ada</span>
+    </label>
+  </div>
+  <div id="imp_prev" style="margin-top:12px"></div>
+  <div class="row" style="margin-top:14px">
+    <button class="btn o" onclick="A.x()">Batal</button>
+    <button id="imp_btn" class="btn a" style="flex:1" disabled onclick="A.impRun('${t}')">${ic('upload',15)} Proses Import</button>
+  </div>`);
+};
+
+A.impFile=async(el,t)=>{
+  const f=el.files[0],pv=$('imp_prev'),bt=$('imp_btn');if(!f||!pv)return;
+  pv.innerHTML='<div class="mu">Membaca file...</div>';bt.disabled=true;impData=[];
+  try{
+    let raw=[];
+    if(/\.xlsx?$/i.test(f.name)){
+      if(!window.XLSX)await lib('https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js');
+      const buf=await f.arrayBuffer(),wb=window.XLSX.read(buf,{type:'array'}),sh=wb.Sheets[wb.SheetNames[0]];
+      raw=window.XLSX.utils.sheet_to_json(sh,{header:1,defval:''}).map(r=>r.map(c=>String(c??'').trim())).filter(r=>r.some(x=>x!==''));
+    }else{
+      raw=parseCsvText(await f.text());
+    }
+    if(raw.length&&/^(nama|name|produk|bahan|menu|no\b)/i.test(String(raw[0][0]||'')))raw.shift();
+    const isP=t==='prod';
+    if(isP){
+      raw.forEach(r=>{
+        const nama=String(r[0]||'').trim();if(!nama)return;
+        const kategori=String(r[1]||'').trim()||'Lainnya',hargaJual=Math.max(0,parseNum(r[2]));if(!(hargaJual>0))return;
+        const hargaPoin=Math.max(0,Math.round(parseNum(r[3]))),aktif=!/^(nonaktif|0|false|tidak|no)$/i.test(String(r[4]||'').trim());
+        const resepRaw=String(r[5]||'').trim(),resep=[];
+        if(resepRaw){
+          resepRaw.split(/[|;,]/).forEach(part=>{
+            const [bn,qStr]=part.split(/[:=]/).map(s=>String(s||'').trim());if(!bn)return;
+            const qty=parseNum(qStr),found=S.ingredients.find(g=>g.nama.toLowerCase()===bn.toLowerCase()||g.id===bn);
+            if(found&&qty>0)resep.push({bahanId:found.id,qty});
+          });
+        }
+        impData.push({nama,kategori,hargaJual,hargaPoin,aktif,resep});
+      });
+    }else{
+      raw.forEach(r=>{
+        const nama=String(r[0]||'').trim();if(!nama)return;
+        const stRaw=String(r[1]||'gr').trim().toLowerCase();
+        const satuan=['ml','liter','l'].includes(stRaw)?'ml':['pcs','buah','cup','biji'].includes(stRaw)?'pcs':'gr';
+        const stok=Math.max(0,parseNum(r[2])),stokMinimum=Math.max(0,parseNum(r[3])),hargaPerSatuan=Math.max(0,parseNum(r[4]));
+        impData.push({nama,satuan,stok,stokMinimum,hargaPerSatuan});
+      });
+    }
+    if(!impData.length){pv.innerHTML=`<div class="card" style="background:var(--erb);border-color:var(--er);color:var(--ert);font-size:12px">Tidak ada baris data valid ditemukan. Pastikan kolom sesuai template.</div>`;return}
+    bt.disabled=false;bt.innerHTML=`${ic('upload',15)} Import ${impData.length} ${isP?'Produk':'Bahan'}`;
+    pv.innerHTML=`<div class="b" style="font-size:13px;margin-bottom:6px;color:var(--ok)">Siap mengimpor ${impData.length} ${isP?'produk':'bahan'}:</div>
+    <div class="ov" style="max-height:200px;border:1px solid var(--bd);border-radius:10px">${isP
+      ?tbl(['Nama Produk','Kategori','Harga','Poin','Resep'],impData.slice(0,50).map(x=>[x.nama,x.kategori,R(x.hargaJual),x.hargaPoin||0,x.resep.length?x.resep.length+' bahan':'-']),[2,3])
+      :tbl(['Nama Bahan','Satuan','Stok Awal','Min','Harga/Satuan'],impData.slice(0,50).map(x=>[x.nama,x.satuan,x.stok,x.stokMinimum,R(x.hargaPerSatuan)]),[2,3,4])
+    }</div>`;
+  }catch(e){pv.innerHTML=`<div class="card" style="background:var(--erb);border-color:var(--er);color:var(--ert);font-size:12px">Gagal membaca file: ${esc(e.message||e)}</div>`}
+};
+
+A.impRun=async t=>{
+  if(!impData.length)return;
+  const isP=t==='prod',upd=$('imp_upd')?$('imp_upd').checked:true,bt=$('imp_btn');
+  if(bt){bt.disabled=true;bt.textContent='Menyimpan...'}
+  let addN=0,updN=0,skipN=0;
+  if(await run(async()=>{
+    for(const item of impData){
+      if(isP){
+        const ex=S.products.find(p=>p.nama.toLowerCase()===item.nama.toLowerCase());
+        if(ex){if(!upd){skipN++;continue}await save('products',{...item,gambar:ex.gambar||'',resep:item.resep.length?item.resep:(ex.resep||[])},ex.id);updN++}
+        else{await save('products',{...item,gambar:''});addN++}
+      }else{
+        const ex=S.ingredients.find(g=>g.nama.toLowerCase()===item.nama.toLowerCase());
+        if(ex){if(!upd){skipN++;continue}await save('ingredients',item,ex.id);updN++}
+        else{await save('ingredients',item);addN++}
+      }
+    }
+  })){
+    impData=[];A.x();view();
+    toast(`Import selesai: ${addN} ditambahkan${updN?`, ${updN} diperbarui`:''}${skipN?`, ${skipN} dilewati`:''}`);
+  }else if(bt){bt.disabled=false;bt.textContent='Proses Import'}
+};
 
 // ===== PENGGUNA KASIR & DIAGNOSTIK =====
 A.uf=id=>{const u=id?S.users.find(x=>x.id===id):{nama:'',username:'',aktif:true};
